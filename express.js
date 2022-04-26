@@ -65,7 +65,7 @@ app.get('/students', function (req, res) {
 
 //Search by id
 app.get('/searchbyid', function (req, res) {
-    let id = req.query.name
+    let id = req.query.id
     db.one('SELECT * FROM students WHERE name = $1', id).then((student) => res.send(student));
 });
 
@@ -86,6 +86,18 @@ app.get('/gradesbyname', async (req, res) => {
     .then((grade) => res.send(grade))
 });
 
+app.get('/gradesbyname/front_end', async (req, res) => {
+    let obj = req.query;
+    await db.query('SELECT id, name, front_end FROM students WHERE name = $1', obj.name)
+    .then((grade) => res.send(grade))
+});
+
+//grade by name & project
+app.get('/gradesbyname/back_end', async (req, res) => {
+    let obj = req.query;
+    await db.query('SELECT id, name, back_end FROM students WHERE name = $1', obj.name)
+    .then((grade) => res.send(grade))
+});
 
 //Get grade by id
 app.get('/gradesbyid', async function (req, res) {
@@ -105,7 +117,7 @@ app.post('/student', async (req, res) => {
         } else if  (student.name === obj.name){
             res.statusCode = 400;
             logger.error({
-                "Error": `${obj.name} is already in the pokedex`,
+                "Error": `${obj.name} is already in the gradebook`,
                 "Status_Code": res.statusCode
             })
             res.send(`${obj.name} already exists!`)
