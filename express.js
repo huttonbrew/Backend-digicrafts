@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({  extended: true}));
 
 
 //const db = pg("postgres://{userame}:{password}@{host}:{port}/{database}")
-const db = pg("postgres://luna@localhost:5432/postgres")
+const db = pg("postgres://victorbrew@localhost:5432/postgres")
 
 const logger = winston.createLogger ({
     level: "info",
@@ -111,6 +111,26 @@ app.post('/student', async (req, res) => {
             res.send(`${obj.name} already exists!`)
         }
     })
+
+    app.put('/student', async (req, res) => {
+        let name =  req.params.name;
+        let newName = req.body.name
+        let newFrontend = req.body.front_end 
+        let newBackend = req.body.back_end
+        
+      
+        await db.oneOrNone('SELECT * FROM students WHERE name = $1', name).then((student) => {
+          if(student === null) {
+              res.send(`${name} was not found`)
+
+          } else {
+            db.none('UPDATE students SET newFrontend = $1, newBackend = $2 WHERE name = $3', [newFrontend, newBackend, name])
+            res.send(req.body)
+          }
+        })
+        
+        
+      })
 });
 
 app.listen(6400)
