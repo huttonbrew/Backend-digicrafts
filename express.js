@@ -86,6 +86,19 @@ app.get('/gradesbyname', async (req, res) => {
     .then((grade) => res.send(grade))
 });
 
+//Get grade by project (front end)
+app.get('/gradesbyname/front_end', async (req, res) => {
+    let obj = req.query;
+    await db.query('SELECT id, name, front_end, back_end FROM students WHERE name = $1', obj.name)
+    .then((grade) => res.send(grade))
+});
+
+//Get grade by project (back end)
+app.get('/gradesbyname/front_end', async (req, res) => {
+    let obj = req.query;
+    await db.query('SELECT id, name, front_end, back_end FROM students WHERE name = $1', obj.name)
+    .then((grade) => res.send(grade))
+});
 
 //Get grade by id
 app.get('/gradesbyid', async function (req, res) {
@@ -135,7 +148,6 @@ app.put('/studentgrades', async (req, res) => {
           console.log("else")
       }
     })
-    
     
     })
 
