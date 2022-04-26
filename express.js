@@ -36,15 +36,21 @@ app.all('*', (req, res, next) => {
     next()
 });
 
-//Select all students
-app.get('/students', function (req, res) {
-    db.any('SELECT * FROM students').then((students) => res.send(students));
-});
-
 //Class schedule
 app.get('/schedule', function (req, res) {
     db.any('SELECT * FROM class').then((schedule) => res.send(schedule));
 });
+
+//Topic by week
+app.get('/subject', function (req, res) {
+    let week = req.query.week;
+    if(week % 2 == 0) {
+        db.one('SELECT * FROM class WHERE finish = $1', week).then((subject) => res.send(subject));
+    } else{
+        db.one('SELECT * FROM class WHERE start = $1', week).then((subject) => res.send(subject));
+    }
+});
+
 
 //Search by name
 app.get('/searchbyname', function (req, res) {
@@ -52,12 +58,41 @@ app.get('/searchbyname', function (req, res) {
     db.one('SELECT * FROM students WHERE name = $1', name).then((student) => res.send(student));
 });
 
-//Search by name
+//Select all students
+app.get('/students', function (req, res) {
+    db.any('SELECT * FROM students').then((students) => res.send(students));
+});
+
+//Search by id
 app.get('/searchbyid', function (req, res) {
     let id = req.query.name
     db.one('SELECT * FROM students WHERE name = $1', id).then((student) => res.send(student));
 });
 
+
+//Get all the grades
+app.get('/grades', async function (req, res) {
+    await db.query('SELECT ${columns:name} FROM ${table:name}', {
+        columns: ['id', 'name', 'front_end', 'back_end'],
+        table: 'students',
+    })
+    .then((allGrades) => res.send(allGrades))
+});
+
+//Get grade by name
+app.get('/gradesbyname', async (req, res) => {
+    let obj = req.query;
+    await db.query('SELECT id, name, front_end, back_end FROM students WHERE name = $1', obj.name)
+    .then((grade) => res.send(grade))
+});
+
+
+//Get grade by id
+app.get('/gradesbyid', async function (req, res) {
+    let obj = req.query;
+    await db.query('SELECT id, name, front_end, back_end FROM students WHERE id = $1', obj.id)
+    .then((grade) => res.send(grade))
+});
 
 //Adding a student
 app.post('/student', async (req, res) => {
@@ -77,6 +112,5 @@ app.post('/student', async (req, res) => {
         }
     })
 });
-
 
 app.listen(6400)
