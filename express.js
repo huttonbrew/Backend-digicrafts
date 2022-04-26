@@ -16,7 +16,7 @@ const db = pg("postgres://victorbrew@localhost:5432/postgres")
 const logger = winston.createLogger ({
     level: "info",
     format: winston.format.json(),
-    defaultMeta: { service: 'pokedex' },
+    defaultMeta: { service: 'students' },
     transports: [
         new winston.transports.File({ filename: 'error.log', level: 'error' }),
         new winston.transports.File({ filename: 'combined.log' }),
@@ -111,26 +111,32 @@ app.post('/student', async (req, res) => {
             res.send(`${obj.name} already exists!`)
         }
     })
-
-    app.put('/student', async (req, res) => {
-        let name =  req.params.name;
-        let newName = req.body.name
-        let newFrontend = req.body.front_end 
-        let newBackend = req.body.back_end
-        
-      
-        await db.oneOrNone('SELECT * FROM students WHERE name = $1', name).then((student) => {
-          if(student === null) {
-              res.send(`${name} was not found`)
-
-          } else {
-            db.none('UPDATE students SET newFrontend = $1, newBackend = $2 WHERE name = $3', [newFrontend, newBackend, name])
-            res.send(req.body)
-          }
-        })
-        
-        
-      })
 });
+//input student grades
+app.put('/studentgrades', async (req, res) => {
+    console.log("studentgrades");
+    let id = req.query.id
+    console.log(typeof(id));
+    //let newName = req.body.name
+    let newFrontend = req.body.front_end 
+    let newBackend = req.body.back_end
+    console.log(newFrontend, newBackend);
+    
+    await db.one('SELECT * FROM students WHERE id = $1', id).then((student) => {
+        console.log(student);
+      if(student === null) {
+          res.send(`id: ${id} was not found`)
+          res.statusCode = 400;
+      } else if (student.id == id){
+        db.none('UPDATE students SET front_end = $1, back_end = $2 WHERE id = $3', [newFrontend, newBackend, id])
+        res.send(req.body)
+        res.statusCode = 200;
+      } else {
+          console.log("else")
+      }
+    })
+    
+    
+    })
 
 app.listen(6400)
