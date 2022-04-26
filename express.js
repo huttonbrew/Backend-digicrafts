@@ -11,12 +11,12 @@ app.use(bodyParser.urlencoded({  extended: true}));
 
 
 //const db = pg("postgres://{userame}:{password}@{host}:{port}/{database}")
-const db = pg("postgres://luna@localhost:5432/postgres")
+const db = pg("postgres://victorbrew@localhost:5432/postgres")
 
 const logger = winston.createLogger ({
     level: "info",
     format: winston.format.json(),
-    defaultMeta: { service: 'pokedex' },
+    defaultMeta: { service: 'students' },
     transports: [
         new winston.transports.File({ filename: 'error.log', level: 'error' }),
         new winston.transports.File({ filename: 'combined.log' }),
@@ -65,7 +65,7 @@ app.get('/students', function (req, res) {
 
 //Search by id
 app.get('/searchbyid', function (req, res) {
-    let id = req.query.id
+    let id = req.query.name
     db.one('SELECT * FROM students WHERE name = $1', id).then((student) => res.send(student));
 });
 
@@ -86,16 +86,17 @@ app.get('/gradesbyname', async (req, res) => {
     .then((grade) => res.send(grade))
 });
 
+//Get grade by project (front end)
 app.get('/gradesbyname/front_end', async (req, res) => {
     let obj = req.query;
-    await db.query('SELECT id, name, front_end FROM students WHERE name = $1', obj.name)
+    await db.query('SELECT id, name, front_end, back_end FROM students WHERE name = $1', obj.name)
     .then((grade) => res.send(grade))
 });
 
-//grade by name & project
-app.get('/gradesbyname/back_end', async (req, res) => {
+//Get grade by project (back end)
+app.get('/gradesbyname/front_end', async (req, res) => {
     let obj = req.query;
-    await db.query('SELECT id, name, back_end FROM students WHERE name = $1', obj.name)
+    await db.query('SELECT id, name, front_end, back_end FROM students WHERE name = $1', obj.name)
     .then((grade) => res.send(grade))
 });
 
@@ -117,12 +118,37 @@ app.post('/student', async (req, res) => {
         } else if  (student.name === obj.name){
             res.statusCode = 400;
             logger.error({
-                "Error": `${obj.name} is already in the gradebook`,
+                "Error": `${obj.name} is already in the pokedex`,
                 "Status_Code": res.statusCode
             })
             res.send(`${obj.name} already exists!`)
         }
     })
 });
+//input student grades
+app.put('/studentgrades', async (req, res) => {
+    console.log("studentgrades");
+    let id = req.query.id
+    console.log(typeof(id));
+    //let newName = req.body.name
+    let newFrontend = req.body.front_end 
+    let newBackend = req.body.back_end
+    console.log(newFrontend, newBackend);
+    
+    await db.one('SELECT * FROM students WHERE id = $1', id).then((student) => {
+        console.log(student);
+      if(student === null) {
+          res.send(`id: ${id} was not found`)
+          res.statusCode = 400;
+      } else if (student.id == id){
+        db.none('UPDATE students SET front_end = $1, back_end = $2 WHERE id = $3', [newFrontend, newBackend, id])
+        res.send(req.body)
+        res.statusCode = 200;
+      } else {
+          console.log("else")
+      }
+    })
+    
+    })
 
 app.listen(6400)
