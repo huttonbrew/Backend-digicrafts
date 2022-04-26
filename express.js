@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({  extended: true}));
 
 
 //const db = pg("postgres://{userame}:{password}@{host}:{port}/{database}")
-const db = pg("postgres://luna@localhost:5432/postgres")
+const db = pg("postgres://Onyinye34@localhost:5432/postgres")
 
 const logger = winston.createLogger ({
     level: "info",
@@ -62,11 +62,13 @@ app.get('/searchbyid', function (req, res) {
 //Adding a student
 app.post('/student', async (req, res) => {
     let obj = req.query;
-    await db.oneOrNone('SELECT * FROM students WHERE name = $1', obj.name).then((student) => {
+    await db.oneOrNone('SELECT * FROM students WHERE name = $1', obj.name)
+    .then((student) => {
         if (student === null) {
             db.query('INSERT INTO students(${this:name}) VALUES(${this:csv})', obj)
             res.statusCode = 200;
-            db.one('SELECT * FROM students WHERE name = $1', obj.name).then((addedStudent) => res.send(addedStudent));
+            db.one('SELECT * FROM students WHERE name = $1', obj.name)
+            .then((addedStudent) => res.send(addedStudent));
         } else if  (student.name === obj.name){
             res.statusCode = 400;
             logger.error({
@@ -78,5 +80,12 @@ app.post('/student', async (req, res) => {
     })
 });
 
+// Delete a student from the student table
+app.delete('/students', async (req, res) => {
+    let name = req.query.name;
+    await db.oneOrNone( 'DELETE FROM students WHERE name = $1', name )
+    .then((students) => res.send("deleted"));
+
+});
 
 app.listen(6400)
